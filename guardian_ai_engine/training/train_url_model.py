@@ -39,6 +39,13 @@ def create_synthetic_url_data():
 
 def train_model():
     """Train and save URL phishing detection model"""
+    import sys
+    from pathlib import Path
+    
+    # Add parent directory to path so we can import utils
+    parent_dir = Path(__file__).parent.parent
+    sys.path.insert(0, str(parent_dir))
+    
     from utils.feature_extraction import URLFeatureExtractor
     
     print("Creating synthetic URL training data...")
