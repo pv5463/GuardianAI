@@ -81,27 +81,39 @@ export async function updateIncidentStatus(
   status: 'open' | 'investigating' | 'resolved' | 'closed',
   resolutionNotes?: string
 ) {
-  const updateData: any = {
-    status,
-    updated_at: new Date().toISOString()
-  };
+  try {
+    const updateData: any = {
+      status,
+      updated_at: new Date().toISOString()
+    };
 
-  if (status === 'resolved' || status === 'closed') {
-    updateData.resolved_at = new Date().toISOString();
-    if (resolutionNotes) {
-      updateData.resolution_notes = resolutionNotes;
+    if (status === 'resolved' || status === 'closed') {
+      updateData.resolved_at = new Date().toISOString();
+      if (resolutionNotes) {
+        updateData.resolution_notes = resolutionNotes;
+      }
     }
+
+    console.log('Updating incident:', incidentId, 'with data:', updateData);
+
+    const { data, error } = await supabase
+      .from('incident_reports')
+      .update(updateData)
+      .eq('id', incidentId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update incident error:', error);
+      throw error;
+    }
+    
+    console.log('Incident updated successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('updateIncidentStatus error:', error);
+    throw error;
   }
-
-  const { data, error } = await supabase
-    .from('incident_reports')
-    .update(updateData)
-    .eq('id', incidentId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
 }
 
 export async function assignIncident(incidentId: string, analystId: string) {

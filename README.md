@@ -63,6 +63,28 @@ Organizations need an intelligent, automated cybersecurity platform that can det
 
 ## 🚀 Key Features
 
+### 🎤 Audio & Image Analysis (NO API KEYS REQUIRED!)
+
+**NEW: All core features work WITHOUT external API keys!**
+
+#### Live Audio Transcription (FREE)
+- ✅ **Web Speech API** - Browser-based transcription
+- ✅ **Real-time processing** - Instant results
+- ✅ **No API key needed** - Works in Chrome/Edge
+- ✅ **Scam detection** - Analyzes speech patterns
+- ✅ **AI voice detection** - Identifies deepfakes
+
+#### Image Text Extraction (FREE)
+- ✅ **Tesseract.js OCR** - Browser-based text extraction
+- ✅ **No API key needed** - Completely free
+- ✅ **Multi-format support** - JPG, PNG, WebP, BMP, GIF
+- ✅ **Scam detection** - Analyzes extracted text
+- ✅ **Phishing detection** - Identifies fake pages
+
+📖 **See `AUDIO_IMAGE_FEATURES.md` for complete guide**
+
+---
+
 ### 1. Real-Time Threat Detection Engine
 
 - **Brute Force Detection** - Identifies 5+ failed login attempts
@@ -96,17 +118,22 @@ Organizations need an intelligent, automated cybersecurity platform that can det
 - Suspicious TLD flagging
 
 #### Voice/Audio Analysis
-- **Real-time transcription** (Web Speech API + OpenAI Whisper)
+- **Real-time transcription** (Web Speech API - NO API KEY REQUIRED!)
+- **Live recording** with browser-based speech recognition (FREE)
+- **Uploaded file transcription** (OpenAI Whisper - optional)
 - **Deepfake detection** using audio analysis
 - **Pitch analysis** - Frequency and variation tracking
 - **AI voice detection** - Identifies synthetic voices
 - **Quality metrics** - Clarity, naturalness, consistency
+- **Scam pattern detection** - Urgency, authority, financial pressure
 
 #### Screenshot Analysis
-- **OCR text extraction** (Tesseract.js)
+- **OCR text extraction** (Tesseract.js - NO API KEY REQUIRED!)
+- **Browser-based processing** - No external API calls (FREE)
 - **Scam pattern detection** in images
 - **Phishing page identification**
 - **Fake app detection**
+- **Multi-format support** - JPG, PNG, WebP, BMP, GIF
 
 ### 4. Encrypted Vault
 
@@ -230,7 +257,8 @@ Organizations need an intelligent, automated cybersecurity platform that can det
 
 - Node.js 18+ and npm
 - Supabase account
-- OpenAI API key (optional, for Whisper transcription)
+- **NO API keys required for core features!**
+- OpenAI API key (optional, only for uploaded audio file transcription)
 
 ### Step 1: Clone Repository
 
@@ -250,10 +278,16 @@ npm install
 Create `.env.local` file:
 
 ```env
+# Required
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Optional (only for uploaded audio file transcription)
+# Live recording and image OCR work WITHOUT this!
 NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key
 ```
+
+**Note:** Audio transcription (live recording) and image OCR work perfectly WITHOUT the OpenAI API key!
 
 ### Step 4: Database Setup
 

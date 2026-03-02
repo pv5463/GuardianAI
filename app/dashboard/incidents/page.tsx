@@ -80,11 +80,20 @@ export default function IncidentsPage() {
 
   const handleResolve = async (incidentId: string) => {
     setResolving(incidentId);
+    setError('');
     try {
-      await updateIncidentStatus(incidentId, 'resolved', 'Incident resolved by user action');
+      console.log('Resolving incident:', incidentId);
+      const result = await updateIncidentStatus(incidentId, 'resolved', 'Incident resolved by user action');
+      console.log('Incident resolved:', result);
+      
+      // Reload data to reflect changes
       await loadData();
-    } catch (error) {
+      
+      // Show success message
+      setError('');
+    } catch (error: any) {
       console.error('Error resolving incident:', error);
+      setError(`Failed to resolve incident: ${error.message || 'Unknown error'}`);
     } finally {
       setResolving(null);
     }

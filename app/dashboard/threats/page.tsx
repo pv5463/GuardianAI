@@ -64,38 +64,46 @@ export default function ThreatsPage() {
     }
 
     try {
-      let query = supabase
+      console.log('Loading threats with filter:', filter);
+      
+      // First, get all threats to calculate stats
+      const { data: allThreats, error: allError } = await supabase
         .from('threat_logs')
         .select('*')
-        .order('detected_at', { ascending: false })
-        .limit(50);
+        .order('detected_at', { ascending: false });
 
-      if (filter !== 'all') {
-        query = query.eq('severity', filter);
+      if (allError) {
+        console.error('Error loading all threats:', allError);
+        throw allError;
       }
 
-      const { data: threatsData, error: queryError } = await query;
-
-      if (queryError) {
-        throw queryError;
-      }
-
-      if (threatsData) {
-        setThreats(threatsData);
-        
+      // Calculate stats from all threats
+      if (allThreats) {
         setStats({
-          total: threatsData.length,
-          critical: threatsData.filter(t => t.severity === 'critical').length,
-          high: threatsData.filter(t => t.severity === 'high').length,
-          medium: threatsData.filter(t => t.severity === 'medium').length,
-          low: threatsData.filter(t => t.severity === 'low').length,
-          active: threatsData.filter(t => t.status === 'active').length
+          total: allThreats.length,
+          critical: allThreats.filter(t => t.severity === 'critical').length,
+          high: allThreats.filter(t => t.severity === 'high').length,
+          medium: allThreats.filter(t => t.severity === 'medium').length,
+          low: allThreats.filter(t => t.severity === 'low').length,
+          active: allThreats.filter(t => t.status === 'active').length
         });
       }
+
+      // Then filter for display
+      let displayThreats = allThreats || [];
+      if (filter !== 'all') {
+        displayThreats = displayThreats.filter(t => t.severity === filter);
+      }
       
-      setError(''); // Clear any previous errors
+      // Limit to 50 for display
+      displayThreats = displayThreats.slice(0, 50);
+      
+      console.log('Threats loaded:', displayThreats.length, 'displayed,', allThreats?.length || 0, 'total');
+      setThreats(displayThreats);
+      setError('');
     } catch (error: any) {
       console.error('Error loading threats:', error);
+      console.error('Error details:', error.message, error.details, error.hint);
       
       // Provide helpful error message based on error type
       if (error.message?.includes('relation') || error.message?.includes('does not exist')) {

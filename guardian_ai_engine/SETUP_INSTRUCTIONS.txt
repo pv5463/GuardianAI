@@ -1,0 +1,116 @@
+================================================================================
+GUARDIAN AI ENGINE - SETUP INSTRUCTIONS FOR WINDOWS
+================================================================================
+
+YOUR PROBLEM:
+You're getting "Microsoft Visual C++ 14.0 required" error because Python 3.13
+is too new and doesn't have pre-built wheels for scikit-learn on Windows yet.
+
+EASIEST SOLUTION - AUTOMATED SETUP:
+================================================================================
+
+1. Double-click: install_windows.bat
+2. Wait for it to complete (2-3 minutes)
+3. Double-click: start_server.bat
+4. Done! Server runs at http://localhost:8000
+
+MANUAL SOLUTION - IF YOU PREFER COMMAND LINE:
+================================================================================
+
+Step 1: Check Python Version
+-----------------------------
+python --version
+
+If you see Python 3.13.x, you need Python 3.11 instead:
+- Download: https://www.python.org/downloads/release/python-3119/
+- Install it (check "Add Python to PATH")
+- Restart terminal
+
+Step 2: Create Virtual Environment
+-----------------------------------
+cd guardian_ai_engine
+py -3.11 -m venv venv
+
+(Or if 3.11 is default: python -m venv venv)
+
+Step 3: Activate Virtual Environment
+-------------------------------------
+PowerShell: venv\Scripts\Activate.ps1
+CMD:        venv\Scripts\activate.bat
+
+You should see (venv) in your prompt
+
+Step 4: Install Dependencies
+-----------------------------
+python -m pip install --upgrade pip
+pip install numpy pandas joblib
+pip install scikit-learn
+pip install fastapi "uvicorn[standard]" pydantic python-multipart slowapi
+
+Step 5: Train Models
+---------------------
+python training\train_login_model.py
+python training\train_url_model.py
+python training\train_sms_model.py
+
+Step 6: Start Server
+---------------------
+python main.py
+
+Server should start at http://localhost:8000
+
+Step 7: Test API (New Terminal)
+--------------------------------
+cd guardian_ai_engine
+venv\Scripts\activate
+python test_api.py
+
+DOCKER SOLUTION - NO PYTHON ISSUES:
+================================================================================
+
+If you have Docker Desktop installed:
+
+docker-compose up --build
+
+Done! Server runs at http://localhost:8000
+
+TROUBLESHOOTING:
+================================================================================
+
+Problem: "No module named 'pandas'"
+Solution: Make sure virtual environment is activated (you should see (venv))
+
+Problem: "Could not connect to server"
+Solution: Server must be running in another terminal window
+
+Problem: Port 8000 already in use
+Solution: netstat -ano | findstr :8000
+         taskkill /PID <PID> /F
+
+Problem: Still getting C++ errors
+Solution: Use Python 3.11 instead of 3.13
+
+WHAT YOU GET:
+================================================================================
+
+Three AI-powered REST API endpoints:
+
+1. POST /predict/login   - Detect login anomalies
+2. POST /predict/url     - Detect phishing URLs  
+3. POST /predict/sms     - Detect SMS scams
+
+All with explainable AI outputs and risk scoring.
+
+API Documentation: http://localhost:8000/docs
+Health Check:      http://localhost:8000/health
+
+NEED MORE HELP?
+================================================================================
+
+See these files:
+- FIX_YOUR_ISSUE.md    - Detailed troubleshooting
+- QUICKSTART.md        - Quick start guide
+- WINDOWS_SETUP.md     - Windows-specific setup
+- README.md            - Full documentation
+
+================================================================================
