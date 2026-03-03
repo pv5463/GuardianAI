@@ -7,6 +7,47 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green)](https://fastapi.tiangolo.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)](https://supabase.com/)
 
+## 🧪 Quick Start & Testing
+
+### Step 1: Start AI Engine (Terminal 1)
+```bash
+cd guardian_ai_engine
+python main.py
+```
+Wait for: `✓ Login model loaded` `✓ URL model loaded` `✓ SMS model loaded`
+
+### Step 2: Start Frontend (Terminal 2)
+```bash
+npm run dev
+```
+Visit: **http://localhost:3000**
+
+### Step 3: Test Threat Detection
+1. Go to `/login`
+2. Try wrong password 5-6 times
+3. Open DevTools (F12) → Console
+4. Watch logs: `Multiple failed login attempts detected...`
+5. Check `/dashboard/threats` and `/dashboard/incidents`
+
+### Expected Behavior
+| Failed Attempts | Action |
+|----------------|--------|
+| 1-2 | Logged, no alerts |
+| 3-4 | AI analyzes, creates threat log |
+| 5+ | Account locked, incident created |
+
+### Diagnostics
+```bash
+# Check AI Engine health
+curl http://localhost:8000/health
+
+# Run automated tests
+node test_threat_detection.js
+
+# Run diagnostics
+node diagnose_threat_detection.js
+```
+
 ---
 
 ## 🎯 Problem Statement
@@ -367,29 +408,76 @@ NEXT_PUBLIC_AI_ENGINE_URL=https://your-ai-engine-url.com
 
 ---
 
-## 📚 Documentation
+## 📚 Project Structure
 
-- **AI_ENGINE_INTEGRATION.md** - Integration guide
-- **guardian_ai_engine/README.md** - AI Engine documentation
-- **guardian_ai_engine/BACKEND_DEPLOYMENT.md** - Deployment guide
+```
+guardian-ai/
+├── app/                          # Next.js pages
+│   ├── dashboard/               # Dashboard pages
+│   ├── login/                   # Login with threat detection
+│   └── signup/                  # User registration
+├── components/                   # React components
+├── lib/                         # Core libraries
+│   ├── aiEngineClient.ts       # AI Engine integration
+│   ├── loginThreatMonitor.ts   # Real-time monitoring
+│   ├── guardianAuth.ts         # Auth with threat detection
+│   └── scamDetectionIntegrated.ts
+├── guardian_ai_engine/          # Python AI Engine
+│   ├── main.py                 # FastAPI server
+│   ├── models/                 # Trained ML models
+│   ├── training/               # Model training scripts
+│   └── utils/                  # Feature extraction
+├── diagnose_threat_detection.js # Diagnostic tool
+├── test_threat_detection.js    # API testing
+└── README.md                   # This file
+```
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Troubleshooting
 
-### Test AI Engine
+### Test AI Engine Endpoints
 
+**Login Detection:**
 ```bash
-cd guardian_ai_engine
-python test_api.py
+curl -X POST http://localhost:8000/predict/login \
+  -H "Content-Type: application/json" \
+  -d '{"failed_attempts": 5, "country_changed": true, "role_access_attempt": 0, "login_gap_minutes": 3}'
 ```
 
-### Test Frontend
-
+**URL Detection:**
 ```bash
-npm run dev
-# Visit http://localhost:3000
-# Sign up and test features
+curl -X POST http://localhost:8000/predict/url \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://paypal-verify.tk/login"}'
+```
+
+**SMS Detection:**
+```bash
+curl -X POST http://localhost:8000/predict/sms \
+  -H "Content-Type: application/json" \
+  -d '{"text": "URGENT! Your bank account suspended. Click here now!"}'
+```
+
+### Common Issues
+
+**AI Engine won't start:**
+```bash
+cd guardian_ai_engine
+pip install -r requirements.txt
+python train_all_models.py
+python main.py
+```
+
+**No threat logs created:**
+- Check `.env.local` has `NEXT_PUBLIC_AI_ENGINE_URL=http://localhost:8000`
+- Restart Next.js after changing env: `npm run dev`
+- Check browser console for errors
+
+**Models not found:**
+```bash
+cd guardian_ai_engine
+python train_all_models.py
 ```
 
 ---

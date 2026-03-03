@@ -1,8 +1,3 @@
-/**
- * AI Engine Client - Connects Next.js frontend to Python AI backend
- * Handles real-time threat detection and analysis with user-specific data storage
- */
-
 import { supabase } from './supabase';
 
 const AI_ENGINE_URL = process.env.NEXT_PUBLIC_AI_ENGINE_URL || 'http://localhost:8000';
@@ -16,9 +11,6 @@ export interface AIEngineResponse {
   probability?: number;
 }
 
-/**
- * Check if AI Engine is available
- */
 export async function checkAIEngineHealth(): Promise<boolean> {
   try {
     const response = await fetch(`${AI_ENGINE_URL}/health`, {
@@ -36,10 +28,6 @@ export async function checkAIEngineHealth(): Promise<boolean> {
   }
 }
 
-/**
- * Detect login threats using AI Engine
- * Stores results in Supabase for user
- */
 export async function detectLoginThreat(
   userId: string,
   loginData: {
@@ -89,10 +77,6 @@ export async function detectLoginThreat(
   }
 }
 
-/**
- * Detect phishing URLs using AI Engine
- * Stores results in Supabase for user
- */
 export async function detectPhishingURL(
   userId: string,
   url: string
@@ -147,10 +131,6 @@ export async function detectPhishingURL(
   }
 }
 
-/**
- * Detect SMS scams using AI Engine
- * Stores results in Supabase for user
- */
 export async function detectSMSScam(
   userId: string,
   text: string
@@ -205,9 +185,6 @@ export async function detectSMSScam(
   }
 }
 
-/**
- * Create incident from threat detection
- */
 async function createIncidentFromThreat(
   userId: string,
   result: AIEngineResponse,
@@ -244,9 +221,6 @@ async function createIncidentFromThreat(
   }
 }
 
-/**
- * Generate mitigation steps based on threat type
- */
 function generateMitigationSteps(type: string, result: AIEngineResponse): string[] {
   const baseSteps = [
     'Document all evidence and logs',
@@ -287,9 +261,6 @@ function generateMitigationSteps(type: string, result: AIEngineResponse): string
   return [...steps, ...baseSteps];
 }
 
-/**
- * Get user's threat history from Supabase
- */
 export async function getUserThreats(userId: string, limit: number = 50) {
   const { data, error } = await supabase
     .from('threat_logs')
@@ -302,9 +273,6 @@ export async function getUserThreats(userId: string, limit: number = 50) {
   return data;
 }
 
-/**
- * Get user's analysis history from Supabase
- */
 export async function getUserAnalysisHistory(userId: string, limit: number = 50) {
   const { data, error } = await supabase
     .from('phishing_analysis')
@@ -317,9 +285,6 @@ export async function getUserAnalysisHistory(userId: string, limit: number = 50)
   return data;
 }
 
-/**
- * Get user's incidents from Supabase
- */
 export async function getUserIncidents(userId: string, status?: string) {
   let query = supabase
     .from('incident_reports')
@@ -339,9 +304,6 @@ export async function getUserIncidents(userId: string, status?: string) {
   return data;
 }
 
-/**
- * Subscribe to real-time threat updates for user
- */
 export function subscribeToUserThreats(
   userId: string,
   callback: (payload: any) => void
@@ -363,9 +325,6 @@ export function subscribeToUserThreats(
   return channel;
 }
 
-/**
- * Subscribe to real-time incident updates for user
- */
 export function subscribeToUserIncidents(
   userId: string,
   callback: (payload: any) => void

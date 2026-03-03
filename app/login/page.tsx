@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Shield, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { signIn } from '@/lib/auth';
+import { trackLoginAttempt, startThreatMonitoring } from '@/lib/loginThreatMonitor';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,20 +15,52 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // Start threat monitoring on component mount
+  useEffect(() => {
+    startThreatMonitoring();
+  }, []);
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     
-    const { data, error } = await signIn(email, password);
+    // Get IP and location for tracking
+    const ipAddress = await getClientIP();
+    const location = await getLocation();
     
-    if (error) {
-      setError(error.message);
+    const { data, error: signInError } = await signIn(email, password);
+    
+    // Track login attempt
+    await trackLoginAttempt(email, !signInError, ipAddress, location);
+    
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
     } else if (data.user) {
       router.push('/dashboard');
     }
   };
+  
+  async function getClientIP(): Promise<string> {
+    try {
+      const response = await fetch('https://api.ipify.org?format=json');
+      const data = await response.json();
+      return data.ip || 'unknown';
+    } catch {
+      return 'unknown';
+    }
+  }
+
+  async function getLocation(): Promise<string> {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      return `${data.city}, ${data.country_name}` || 'unknown';
+    } catch {
+      return 'unknown';
+    }
+  }
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center p-4">

@@ -16,19 +16,16 @@ from utils.feature_extraction import (
     SMSFeatureExtractor
 )
 
-# Initialize FastAPI app
 app = FastAPI(
     title="Guardian AI Threat Detection Engine",
     description="Production-ready AI engine for cybersecurity threat detection",
     version="1.0.0"
 )
 
-# Rate limiting
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Configure for production
@@ -37,12 +34,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load models at startup
 models = {}
 
 @app.on_event("startup")
 async def load_models():
-    """Load all ML models on startup"""
     try:
         if os.path.exists('models/login_model.pkl'):
             models['login'] = joblib.load('models/login_model.pkl')
@@ -63,7 +58,6 @@ async def load_models():
     except Exception as e:
         print(f"Warning: Could not load models - {e}")
 
-# Request/Response Models
 class LoginRequest(BaseModel):
     failed_attempts: int = Field(..., ge=0, description="Number of failed login attempts")
     country_changed: bool = Field(..., description="Whether login country changed")
@@ -102,9 +96,7 @@ class ThreatResponse(BaseModel):
     incident_required: bool
     probability: Optional[float] = None
 
-# Helper functions
 def calculate_risk_level(score: float) -> str:
-    """Convert score to risk level"""
     if score <= 30:
         return "Low"
     elif score <= 60:
@@ -112,10 +104,8 @@ def calculate_risk_level(score: float) -> str:
     else:
         return "High"
 
-# API Endpoints
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
     return {
         "status": "healthy",
         "models_loaded": {
@@ -128,27 +118,21 @@ async def health_check():
 @app.post("/predict/login", response_model=ThreatResponse)
 @limiter.limit("100/minute")
 async def predict_login(request: Request, data: LoginRequest):
-    """Detect login anomalies and threats"""
     try:
-        # Extract features
         extractor = LoginFeatureExtractor()
         features = extractor.extract(data.dict())
         
         if 'login' not in models:
             raise HTTPException(status_code=503, detail="Login model not available")
         
-        # Prepare feature vector
         feature_vector = np.array([[features[f] for f in models['login_features']]])
         
-        # Predict
         probabilities = models['login'].predict_proba(feature_vector)[0]
         predicted_class = models['login'].classes_[np.argmax(probabilities)]
         max_probability = float(np.max(probabilities))
         
-        # Calculate risk score
         risk_score = max_probability * 100
         
-        # Generate explanation
         if hasattr(models['login'], 'coef_'):
             weights = models['login'].coef_[np.argmax(probabilities)]
             explanations = extractor.explain_features(features, weights, models['login_features'])
@@ -172,13 +156,10 @@ async def predict_login(request: Request, data: LoginRequest):
 @app.post("/predict/url", response_model=ThreatResponse)
 @limiter.limit("100/minute")
 async def predict_url(request: Request, data: URLRequest):
-    """Detect phishing URLs"""
     try:
-        # Extract features
         extractor = URLFeatureExtractor()
         features = extractor.extract(data.url)
         
-        # Use model if available, otherwise use rule-based scoring
         if 'url' in models:
             feature_vector = np.array([[features[f] for f in models['url_features']]])
             probabilities = models['url'].predict_proba(feature_vector)[0]
@@ -187,7 +168,6 @@ async def predict_url(request: Request, data: URLRequest):
             classification = "phishing" if phishing_prob > 0.5 else "safe"
             _, reasons = extractor.calculate_risk_score(features)
         else:
-            # Fallback to rule-based
             risk_score, reasons = extractor.calculate_risk_score(features)
             classification = "phishing" if risk_score > 50 else "safe"
         
@@ -207,9 +187,7 @@ async def predict_url(request: Request, data: URLRequest):
 @app.post("/predict/sms", response_model=ThreatResponse)
 @limiter.limit("100/minute")
 async def predict_sms(request: Request, data: SMSRequest):
-    """Detect SMS scams"""
     try:
-        # Extract features
         extractor = SMSFeatureExtractor()
         features = extractor.extract(data.text)
         keywords = extractor.extract_keywords(data.text)
@@ -217,17 +195,14 @@ async def predict_sms(request: Request, data: SMSRequest):
         if 'sms' not in models:
             raise HTTPException(status_code=503, detail="SMS model not available")
         
-        # Prepare feature vector
         feature_vector = np.array([[features[f] for f in models['sms_features']]])
         
-        # Predict
         probabilities = models['sms'].predict_proba(feature_vector)[0]
         scam_probability = float(probabilities[1])
         risk_score = scam_probability * 100
         
         classification = "scam" if scam_probability > 0.5 else "legitimate"
         
-        # Build explanation
         explanations = keywords if keywords else ["No suspicious patterns detected"]
         
         return ThreatResponse(
@@ -246,7 +221,6 @@ async def predict_sms(request: Request, data: SMSRequest):
 
 @app.get("/")
 async def root():
-    """Root endpoint"""
     return {
         "service": "Guardian AI Threat Detection Engine",
         "version": "1.0.0",

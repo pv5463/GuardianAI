@@ -1,6 +1,6 @@
-// Enhanced Authentication System for GuardianAI
 import { supabase } from './supabase';
 import { generateDeviceFingerprint } from './encryption';
+import { detectLoginThreat } from './aiEngineClient';
 
 export interface UserProfile {
   id: string;
@@ -83,12 +83,20 @@ export async function signInWithTracking(email: string, password: string) {
           is_locked: newAttempts >= 5
         })
         .eq('id', profile.id);
+
+      // Trigger threat detection for suspicious login patterns
+      await detectLoginThreats(profile.id, newAttempts, ipAddress, location);
     }
     
     throw error;
   }
 
   await logSuccessfulLogin(data.user.id, ipAddress, location, deviceFingerprint);
+  
+  // Check for suspicious login patterns even on successful login
+  if (profile) {
+    await checkSuspiciousLoginPatterns(data.user.id, ipAddress, location);
+  }
   
   await supabase
     .from('user_profiles')
@@ -194,4 +202,128 @@ export async function hasPermission(userId: string, permission: string): Promise
 
   const permissions = (data.roles as any)?.permissions || {};
   return permissions.all === true || permissions[permission] === true;
+}
+
+/**
+ * Detect login threats using AI Engine
+ */
+async function detectLoginThreats(
+  userId: string,
+  failedAttempts: number,
+  ipAddress: string,
+  location: string
+) {
+  try {
+    const { data: previousLogins } = await supabase
+      .from('login_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('success', true)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    const lastLogin = previousLogins?.[0];
+    
+    let loginGapMinutes = 0;
+    if (lastLogin) {
+      const lastLoginTime = new Date(lastLogin.created_at).getTime();
+      const currentTime = new Date().getTime();
+      loginGapMinutes = Math.floor((currentTime - lastLoginTime) / (1000 * 60));
+    }
+
+    const countryChanged = lastLogin && lastLogin.location !== location;
+
+    const roleAccessAttempt = 0;
+
+    const threatData = {
+      failed_attempts: failedAttempts,
+      country_changed: countryChanged || false,
+      role_access_attempt: roleAccessAttempt,
+      login_gap_minutes: loginGapMinutes
+    };
+
+    console.log('Detecting login threat:', threatData);
+
+    const result = await detectLoginThreat(userId, threatData);
+
+    console.log('Threat detection result:', result);
+
+    if (result.risk_score > 60) {
+      console.warn(`High-risk login detected for user ${userId}:`, result);
+      
+      await sendSecurityAlert(userId, result);
+    }
+
+  } catch (error) {
+    console.error('Error detecting login threats:', error);
+  }
+}
+
+async function checkSuspiciousLoginPatterns(
+  userId: string,
+  ipAddress: string,
+  location: string
+) {
+  try {
+    const { data: recentLogins } = await supabase
+      .from('login_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('success', true)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (!recentLogins || recentLogins.length < 2) return;
+
+    const lastLogin = recentLogins[1];
+    
+    if (lastLogin && lastLogin.location !== location) {
+      const lastLoginTime = new Date(lastLogin.created_at).getTime();
+      const currentTime = new Date().getTime();
+      const minutesDiff = (currentTime - lastLoginTime) / (1000 * 60);
+
+      if (minutesDiff < 60) {
+        console.warn(`Impossible travel detected for user ${userId}`);
+        
+        await detectLoginThreat(userId, {
+          failed_attempts: 0,
+          country_changed: true,
+          role_access_attempt: 0,
+          login_gap_minutes: Math.floor(minutesDiff)
+        });
+      }
+    }
+
+    const uniqueIPs = new Set(recentLogins.map(l => l.ip_address));
+    if (uniqueIPs.size >= 3) {
+      console.warn(`Multiple IPs detected for user ${userId}`);
+      
+      await supabase.from('threat_logs').insert({
+        user_id: userId,
+        threat_type: 'multiple_ip_login',
+        severity: 'medium',
+        source_ip: ipAddress,
+        description: `Login from ${uniqueIPs.size} different IP addresses in recent history`,
+        risk_score: 55,
+        indicators: Array.from(uniqueIPs),
+        status: 'active'
+      });
+    }
+
+  } catch (error) {
+    console.error('Error checking suspicious patterns:', error);
+  }
+}
+
+async function sendSecurityAlert(userId: string, threatResult: any) {
+  try {
+    console.log(`Security Alert for user ${userId}:`, {
+      risk_score: threatResult.risk_score,
+      classification: threatResult.classification,
+      explanation: threatResult.explanation
+    });
+
+  } catch (error) {
+    console.error('Error sending security alert:', error);
+  }
 }
