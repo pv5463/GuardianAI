@@ -439,7 +439,7 @@ MIT License - See LICENSE file for details
 ## 📞 Contact
 
 **Project:** https://github.com/pv5463/GuardianAI.git
-**Email:** piyushofficial@gmail.com
+**Email:** piyushofficial775@gmail.com
 
 ---
 
