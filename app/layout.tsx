@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Guardian AI - Digital Scam Detection",
-  description: "AI-powered real-time scam detection for messages, URLs, and UPI IDs. Stay protected with Guardian AI.",
+  description: "AI-powered real-time scam detection for messages, URLs, and E-mails. Stay protected with Guardian AI.",
 };
 
 export default function RootLayout({

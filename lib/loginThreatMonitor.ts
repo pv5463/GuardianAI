@@ -1,3 +1,8 @@
+/**
+ * Login Threat Monitor - Real-time monitoring of login attempts
+ * Automatically detects and responds to suspicious login patterns
+ */
+
 import { supabase } from './supabase';
 import { detectLoginThreat } from './aiEngineClient';
 
@@ -9,8 +14,12 @@ export interface LoginAttempt {
   timestamp: Date;
 }
 
+// In-memory cache for tracking recent attempts (per session)
 const recentAttempts = new Map<string, LoginAttempt[]>();
 
+/**
+ * Track login attempt and detect threats
+ */
 export async function trackLoginAttempt(
   email: string,
   success: boolean,
@@ -35,13 +44,18 @@ export async function trackLoginAttempt(
   }
   recentAttempts.set(email, attempts);
 
+  // Analyze if failed login
   if (!success) {
     await analyzeFailedLogin(email, attempts);
   }
 }
 
+/**
+ * Analyze failed login attempts
+ */
 async function analyzeFailedLogin(email: string, attempts: LoginAttempt[]): Promise<void> {
   try {
+    // Get user profile
     const { data: profile } = await supabase
       .from('user_profiles')
       .select('id, failed_login_attempts')
@@ -50,6 +64,7 @@ async function analyzeFailedLogin(email: string, attempts: LoginAttempt[]): Prom
 
     if (!profile) return;
 
+    // Count recent failed attempts (last 15 minutes)
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     const recentFailures = attempts.filter(
       a => !a.success && a.timestamp > fifteenMinutesAgo
@@ -101,6 +116,9 @@ async function analyzeFailedLogin(email: string, attempts: LoginAttempt[]): Prom
   }
 }
 
+/**
+ * Check for brute force attacks across all users
+ */
 export async function detectBruteForceAttacks(): Promise<void> {
   try {
     // Get failed login attempts in last 5 minutes
@@ -143,6 +161,9 @@ export async function detectBruteForceAttacks(): Promise<void> {
   }
 }
 
+/**
+ * Clear old attempts from memory (call periodically)
+ */
 export function clearOldAttempts(): void {
   const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
   
@@ -157,10 +178,16 @@ export function clearOldAttempts(): void {
   }
 }
 
+/**
+ * Get recent login attempts for an email
+ */
 export function getRecentAttempts(email: string): LoginAttempt[] {
   return recentAttempts.get(email) || [];
 }
 
+/**
+ * Start periodic monitoring
+ */
 export function startThreatMonitoring(): void {
   // Check for brute force attacks every minute
   setInterval(() => {

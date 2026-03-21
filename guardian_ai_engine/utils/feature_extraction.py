@@ -113,11 +113,17 @@ class SMSFeatureExtractor:
     """Extract features from SMS text for scam detection"""
     
     URGENCY_WORDS = {'urgent', 'immediately', 'now', 'expire', 'limited', 
-                     'act fast', 'hurry', 'quick', 'asap', 'today only'}
+                     'act fast', 'hurry', 'quick', 'asap', 'today only', 'final'}
     MONEY_WORDS = {'prize', 'winner', 'cash', 'money', 'free', 'claim', 
-                   'reward', 'refund', 'payment', 'credit', 'debt'}
+                   'reward', 'refund', 'payment', 'credit', 'debt', 'won', 'lottery'}
     BANK_WORDS = {'bank', 'account', 'card', 'suspended', 'blocked', 
-                  'verify', 'confirm', 'security', 'fraud'}
+                  'verify', 'confirm', 'security', 'fraud', 'atm', 'cvv', 'kyc'}
+    
+    # Legitimacy indicators (negative signals for scams)
+    LEGITIMACY_WORDS = {'never ask', 'never share', 'official', 'reminder', 
+                        'committed', 'thank you', 'visit our', 'contact us',
+                        'customer support', 'nearest branch', 'official website',
+                        'official app', 'helpline', 'stay safe', 'report suspicious'}
     
     @staticmethod
     def extract(text: str) -> Dict[str, float]:
@@ -133,21 +139,60 @@ class SMSFeatureExtractor:
         # Count bank-related words
         bank_count = sum(word in text_lower for word in SMSFeatureExtractor.BANK_WORDS)
         
+        # Count legitimacy indicators (IMPORTANT!)
+        legitimacy_count = sum(phrase in text_lower for phrase in SMSFeatureExtractor.LEGITIMACY_WORDS)
+        
         # Check for links
         has_link = bool(re.search(r'http[s]?://|www\.|\w+\.\w{2,}', text_lower))
         
         # Check for excessive caps
         caps_ratio = sum(1 for c in text if c.isupper()) / len(text) if text else 0
         
+        # Check for requests to share sensitive info
+        requests_sensitive = bool(re.search(r'(enter|share|provide|send).*(pin|otp|password|cvv|card number)', text_lower))
+        
+        # Check for threats
+        has_threat = any(word in text_lower for word in ['blocked', 'suspended', 'closed', 'legal action', 'arrest'])
+        
         return {
             'urgency_count': float(urgency_count),
             'money_count': float(money_count),
             'bank_count': float(bank_count),
+            'legitimacy_count': float(legitimacy_count),  # NEW: legitimacy signals
             'has_link': float(has_link),
             'excessive_caps': float(caps_ratio > 0.3),
-            'length': float(len(text)),
-            'exclamation_count': float(text.count('!'))
+            'exclamation_count': float(text.count('!')),
+            'requests_sensitive': float(requests_sensitive),  # NEW: asks for sensitive data
+            'has_threat': float(has_threat),  # NEW: threatening language
+            'length': float(len(text))
         }
+    
+    @staticmethod
+    def extract_keywords(text: str) -> List[str]:
+        """Extract detected keywords for explanation"""
+        text_lower = text.lower()
+        keywords = []
+        
+        # Check urgency words
+        for word in SMSFeatureExtractor.URGENCY_WORDS:
+            if word in text_lower:
+                keywords.append(f"urgency: '{word}'")
+        
+        # Check money words
+        for word in SMSFeatureExtractor.MONEY_WORDS:
+            if word in text_lower:
+                keywords.append(f"money: '{word}'")
+        
+        # Check banking words
+        for word in SMSFeatureExtractor.BANK_WORDS:
+            if word in text_lower:
+                keywords.append(f"banking: '{word}'")
+        
+        # Check for sensitive info requests
+        if re.search(r'(enter|share|provide|send).*(pin|otp|password|cvv)', text_lower):
+            keywords.append("⚠️ requests sensitive information")
+        
+        return keywords[:10]  # Limit to top 10
     
     @staticmethod
     def extract_keywords(text: str) -> List[str]:

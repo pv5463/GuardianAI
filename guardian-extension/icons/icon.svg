@@ -1,0 +1,31 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0e27;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1f3a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+  
+  <!-- Shield icon -->
+  <path d="M64 20C64 20 88 28 88 28V52C88 68 64 80 64 80C64 80 40 68 40 52V28C40 28 64 20 64 20Z" 
+        fill="url(#shield)" 
+        stroke="url(#shield)" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  
+  <!-- AI symbol -->
+  <circle cx="64" cy="50" r="8" fill="#0a0e27"/>
+  <path d="M56 50L60 54L68 46" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Glow effect -->
+  <circle cx="64" cy="50" r="20" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0.3"/>
+</svg>

@@ -5,6 +5,7 @@ export interface ScamAnalysisResult {
   explanation: string;
   recommendations: string[];
   detectedIndicators: string[];
+  aiEngineUsed?: boolean;
 }
 
 const urgencyPhrases = [
@@ -223,7 +224,8 @@ export function analyzeText(text: string): ScamAnalysisResult {
     redFlags: [...new Set(redFlags)], 
     explanation, 
     recommendations,
-    detectedIndicators: [...new Set(detectedIndicators)]
+    detectedIndicators: [...new Set(detectedIndicators)],
+    aiEngineUsed: false
   };
 }
 
@@ -404,7 +406,8 @@ export function analyzeURL(url: string): ScamAnalysisResult {
       redFlags,
       explanation: generateURLExplanation(riskLevel, redFlags.length, hostname),
       recommendations: generateURLRecommendations(riskLevel, criticalIndicatorCount),
-      detectedIndicators: [...new Set(detectedIndicators)]
+      detectedIndicators: [...new Set(detectedIndicators)],
+      aiEngineUsed: false
     };
   } catch (error) {
     return {
@@ -417,7 +420,8 @@ export function analyzeURL(url: string): ScamAnalysisResult {
         '⚠️ Verify the correct URL from official sources',
         '⚠️ Report if received in suspicious message'
       ],
-      detectedIndicators: ['Invalid URL']
+      detectedIndicators: ['Invalid URL'],
+      aiEngineUsed: false
     };
   }
 }
@@ -534,7 +538,8 @@ export function analyzeUPI(upiId: string): ScamAnalysisResult {
     redFlags,
     explanation: generateUPIExplanation(riskLevel, redFlags.length, upiId),
     recommendations: generateUPIRecommendations(riskLevel),
-    detectedIndicators: [...new Set(detectedIndicators)]
+    detectedIndicators: [...new Set(detectedIndicators)],
+    aiEngineUsed: false
   };
 }
 

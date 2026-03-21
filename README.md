@@ -9,6 +9,9 @@
 
 ## 🧪 Quick Start & Testing
 
+### ⚠️ Getting "Service Unavailable" Error?
+**The AI Engine is not running!** → See [AI_ENGINE_START_GUIDE.md](./AI_ENGINE_START_GUIDE.md)
+
 ### Step 1: Start AI Engine (Terminal 1)
 ```bash
 cd guardian_ai_engine
@@ -16,37 +19,78 @@ python main.py
 ```
 Wait for: `✓ Login model loaded` `✓ URL model loaded` `✓ SMS model loaded`
 
+**Verify:** `curl http://localhost:8000/health` should return `{"status":"healthy"}`
+
 ### Step 2: Start Frontend (Terminal 2)
 ```bash
 npm run dev
 ```
 Visit: **http://localhost:3000**
 
-### Step 3: Test Threat Detection
+### Step 3: Test URL/SMS Analysis with AI Engine
+
+**Test URL Analysis:**
+1. **Login/Signup** at http://localhost:3000
+2. Go to **Dashboard**
+3. Click **URL** tab
+4. Enter fake URL: `http://paypal-secure-login.tk/verify`
+5. Click **Analyze**
+6. **Open Console (F12)** - you'll see:
+   ```
+   🔍 Analyzing URL: http://paypal-secure-login.tk/verify
+   👤 User ID: your-user-id
+   🔌 Checking AI Engine health...
+   💚 AI Engine healthy: true
+   🚀 Calling AI Engine for URL analysis...
+   ✅ AI Engine response: {risk_score: 85, ...}
+   ```
+7. Look for **"AI Engine"** badge on result card
+
+**Test SMS/Text Analysis:**
+1. Click **Text** tab
+2. Enter: `URGENT! Your bank account will be locked. Click: http://bit.ly/xyz`
+3. Click **Analyze**
+4. Check console for AI Engine logs
+5. Verify **"AI Engine"** badge appears
+
+**Test Login Threat Detection:**
 1. Go to `/login`
 2. Try wrong password 5-6 times
-3. Open DevTools (F12) → Console
-4. Watch logs: `Multiple failed login attempts detected...`
-5. Check `/dashboard/threats` and `/dashboard/incidents`
+3. Check console: `Multiple failed login attempts detected...`
+4. View `/dashboard/threats` and `/dashboard/incidents`
 
 ### Expected Behavior
-| Failed Attempts | Action |
-|----------------|--------|
-| 1-2 | Logged, no alerts |
-| 3-4 | AI analyzes, creates threat log |
-| 5+ | Account locked, incident created |
+| Scenario | Result |
+|----------|--------|
+| AI Engine running + logged in | Shows "AI Engine" badge |
+| AI Engine stopped | Uses local analysis (no badge) |
+| Not logged in | Uses local analysis (no badge) |
+| 3-4 failed logins | AI analyzes, creates threat log |
+| 5+ failed logins | Account locked, incident created |
 
 ### Diagnostics
 ```bash
 # Check AI Engine health
 curl http://localhost:8000/health
 
+# Test typosquatting detection
+node demo_typosquatting.js
+
+# Test URL endpoint directly
+curl -X POST http://localhost:8000/predict/url \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://googl.com"}'
+
 # Run automated tests
 node test_threat_detection.js
 
-# Run diagnostics
+# Run full diagnostics
 node diagnose_threat_detection.js
 ```
+
+📖 **Quick Test Guide**: See [QUICK_TEST_GUIDE.md](./QUICK_TEST_GUIDE.md) for detailed testing
+📖 **Advanced Detection**: See [ADVANCED_PHISHING_DETECTION.md](./ADVANCED_PHISHING_DETECTION.md)
+📖 **Fix Summary**: See [AI_ENGINE_FIX_SUMMARY.md](./AI_ENGINE_FIX_SUMMARY.md) for implementation details
 
 ---
 
@@ -103,6 +147,27 @@ node diagnose_threat_detection.js
 ---
 
 ## 🚀 Key Features
+
+### 🤖 Advanced Phishing Detection (NEW!)
+
+**Production-grade multi-layer URL security:**
+
+- **Typosquatting Detection** - Catches googl.com, paypa1.com, facebok.com
+- **Levenshtein Distance** - Character-level similarity analysis
+- **100+ Trusted Domains** - Google, Facebook, Banks, Payment services
+- **Fuzzy Matching** - 91% similarity = PHISHING DETECTED
+- **Pattern Analysis** - IP addresses, suspicious TLDs, keywords
+- **Risk Scoring** - Multi-layer 0-100 scoring system
+
+**Test Results:**
+| URL | Detection | Status |
+|-----|-----------|--------|
+| google.com | ✓ SAFE | 0/100 |
+| googl.com | 🚨 TYPOSQUATTING | 70/100 |
+| paypa1.com | 🚨 TYPOSQUATTING | 60/100 |
+| facebook-login.tk | ⚠️ SUSPICIOUS | 65/100 |
+
+📖 **Full Details**: [ADVANCED_PHISHING_DETECTION.md](./ADVANCED_PHISHING_DETECTION.md)
 
 ### 🤖 Python AI Engine
 

@@ -67,10 +67,62 @@ export default function HomePage() {
             style={{ y, opacity }}
             className="absolute inset-0"
           >
-            <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-3xl" />
+            <motion.div 
+              className="absolute top-20 left-10 w-72 h-72 bg-cyber-blue/20 rounded-full blur-3xl"
+              animate={{ 
+                scale: [1, 1.2, 1],
+                x: [0, 50, 0],
+                y: [0, 30, 0]
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div 
+              className="absolute bottom-20 right-10 w-96 h-96 bg-cyber-purple/20 rounded-full blur-3xl"
+              animate={{ 
+                scale: [1, 1.3, 1],
+                x: [0, -30, 0],
+                y: [0, -50, 0]
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyber-blue/10 rounded-full blur-3xl"
+              animate={{ 
+                scale: [1, 1.1, 1],
+                rotate: [0, 180, 360]
+              }}
+              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+            />
           </motion.div>
+          
+          {/* Floating particles - using fixed positions to avoid hydration mismatch */}
+          {[...Array(20)].map((_, i) => {
+            // Generate deterministic positions based on index
+            const left = ((i * 37) % 100);
+            const top = ((i * 53) % 100);
+            const duration = 3 + ((i % 5) * 0.4);
+            const delay = (i % 10) * 0.2;
+            
+            return (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 bg-cyber-blue/30 rounded-full"
+                style={{
+                  left: `${left}%`,
+                  top: `${top}%`,
+                }}
+                animate={{
+                  y: [0, -30, 0],
+                  opacity: [0, 1, 0],
+                }}
+                transition={{
+                  duration,
+                  repeat: Infinity,
+                  delay,
+                }}
+              />
+            );
+          })}
         </div>
         
         <div className="relative z-10 max-w-6xl mx-auto text-center">
@@ -91,9 +143,20 @@ export default function HomePage() {
           >
             Protect Yourself from
             <br />
-            <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <motion.span 
+              className="bg-gradient-to-r from-cyber-blue via-cyber-purple to-cyber-pink bg-clip-text text-transparent inline-block"
+              animate={{ 
+                backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+              }}
+              transition={{ 
+                duration: 5, 
+                repeat: Infinity,
+                ease: 'linear'
+              }}
+              style={{ backgroundSize: '200% 200%' }}
+            >
               Digital Scams
-            </span>
+            </motion.span>
           </motion.h1>
           
           <motion.p
@@ -102,7 +165,7 @@ export default function HomePage() {
             transition={{ delay: 0.4 }}
             className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto"
           >
-            AI-powered real-time scam detection for messages, URLs, and UPI IDs.
+            AI-powered real-time scam detection for messages, URLs, and E-mails.
             Stay safe with Guardian AI's advanced threat intelligence.
           </motion.p>
           
@@ -114,19 +177,30 @@ export default function HomePage() {
           >
             <Link href="/signup">
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, boxShadow: '0 0 40px rgba(0, 212, 255, 0.6)' }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-2xl shadow-blue-500/50 hover:shadow-blue-500/70 transition-all flex items-center gap-2 justify-center"
+                className="px-8 py-4 bg-gradient-to-r from-cyber-blue to-cyber-purple text-white font-semibold rounded-xl shadow-glow-blue hover:shadow-glow-purple transition-all flex items-center gap-2 justify-center relative overflow-hidden group"
               >
-                Get Started Free
-                <ArrowRight className="w-5 h-5" />
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  animate={{ x: ['-100%', '200%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                />
+                <span className="relative z-10">Get Started Free</span>
+                <motion.div
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="relative z-10"
+                >
+                  <ArrowRight className="w-5 h-5" />
+                </motion.div>
               </motion.button>
             </Link>
             <Link href="/login">
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, borderColor: 'rgba(0, 212, 255, 0.5)' }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-gray-800/50 backdrop-blur-xl border border-gray-700 text-white font-semibold rounded-xl hover:bg-gray-700/50 transition-all"
+                className="px-8 py-4 bg-gradient-to-br from-glass-light to-glass-medium backdrop-blur-xl border border-white/10 text-white font-semibold rounded-xl hover:border-cyber-blue/50 transition-all"
               >
                 Sign In
               </motion.button>
@@ -175,12 +249,16 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10 }}
-                className="p-6 bg-gradient-to-br from-gray-900/50 to-gray-800/30 backdrop-blur-xl border border-gray-700/50 rounded-2xl shadow-xl hover:shadow-2xl hover:border-blue-500/50 transition-all"
+                whileHover={{ y: -10, boxShadow: '0 20px 40px rgba(0, 212, 255, 0.3)' }}
+                className="p-6 bg-gradient-to-br from-glass-light to-glass-medium backdrop-blur-xl border border-white/10 rounded-2xl shadow-glass hover:border-cyber-blue/50 transition-all group"
               >
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/50">
+                <motion.div 
+                  className="w-12 h-12 bg-gradient-to-br from-cyber-blue to-cyber-purple rounded-xl flex items-center justify-center mb-4 shadow-glow-blue"
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <feature.icon className="w-6 h-6 text-white" />
-                </div>
+                </motion.div>
                 <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
                 <p className="text-gray-400">{feature.description}</p>
               </motion.div>

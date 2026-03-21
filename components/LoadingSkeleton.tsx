@@ -8,16 +8,22 @@ export default function LoadingSkeleton() {
       {[1, 2, 3].map((i) => (
         <motion.div
           key={i}
-          className="h-24 bg-gradient-to-r from-gray-800/50 to-gray-700/30 rounded-xl"
-          animate={{
-            opacity: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            delay: i * 0.2,
-          }}
-        />
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.1 }}
+          className="h-24 bg-gradient-to-br from-glass-light to-glass-medium backdrop-blur-sm rounded-xl border border-white/10 relative overflow-hidden"
+        >
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-cyber-blue/10 to-transparent"
+            animate={{ x: ['-100%', '200%'] }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: 'linear',
+              delay: i * 0.2
+            }}
+          />
+        </motion.div>
       ))}
     </div>
   );

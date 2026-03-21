@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate Guardian AI Icons</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #0a0e27;
+      color: #ffffff;
+    }
+    h1 {
+      background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .icon-preview {
+      display: flex;
+      gap: 30px;
+      margin: 30px 0;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .icon-item {
+      text-align: center;
+    }
+    .icon-item canvas {
+      display: block;
+      margin: 10px auto;
+      border: 2px solid rgba(0, 212, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .icon-item p {
+      margin: 10px 0 5px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+    button {
+      background: linear-gradient(135deg, #00d4ff, #8b5cf6);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 10px;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .instructions {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .instructions h3 {
+      color: #00d4ff;
+      margin-top: 0;
+    }
+    .instructions ol {
+      line-height: 1.8;
+    }
+    .success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #10b981;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛡️ Guardian AI Icon Generator</h1>
+  
+  <div class="instructions">
+    <h3>Instructions:</h3>
+    <ol>
+      <li>Open this HTML file in your browser</li>
+      <li>Click the "Download" button under each icon size</li>
+      <li>Save the files as <code>icon16.png</code>, <code>icon48.png</code>, and <code>icon128.png</code></li>
+      <li>Place all three PNG files in the <code>icons/</code> folder</li>
+      <li>Reload the extension in Chrome</li>
+    </ol>
+  </div>
+
+  <div class="icon-preview">
+    <div class="icon-item">
+      <p>16x16 (Toolbar)</p>
+      <canvas id="canvas16" width="16" height="16"></canvas>
+      <button onclick="downloadIcon(16)">Download icon16.png</button>
+    </div>
+    
+    <div class="icon-item">
+      <p>48x48 (Management)</p>
+      <canvas id="canvas48" width="48" height="48"></canvas>
+      <button onclick="downloadIcon(48)">Download icon48.png</button>
+    </div>
+    
+    <div class="icon-item">
+      <p>128x128 (Store)</p>
+      <canvas id="canvas128" width="128" height="128"></canvas>
+      <button onclick="downloadIcon(128)">Download icon128.png</button>
+    </div>
+  </div>
+
+  <div class="success" id="success">
+    ✓ Icon downloaded! Save it in the icons/ folder.
+  </div>
+
+  <script>
+    // SVG content
+    const svgContent = `
+      <svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#0a0e27;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#1a1f3a;stop-opacity:1" />
+          </linearGradient>
+          <linearGradient id="shield" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+        <path d="M64 20C64 20 88 28 88 28V52C88 68 64 80 64 80C64 80 40 68 40 52V28C40 28 64 20 64 20Z" 
+              fill="url(#shield)" 
+              stroke="url(#shield)" 
+              stroke-width="3" 
+              stroke-linecap="round" 
+              stroke-linejoin="round"/>
+        <circle cx="64" cy="50" r="8" fill="#0a0e27"/>
+        <path d="M56 50L60 54L68 46" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="64" cy="50" r="20" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0.3"/>
+      </svg>
+    `;
+
+    // Generate icons on load
+    window.onload = function() {
+      generateIcon(16);
+      generateIcon(48);
+      generateIcon(128);
+    };
+
+    function generateIcon(size) {
+      const canvas = document.getElementById(`canvas${size}`);
+      const ctx = canvas.getContext('2d');
+      
+      const img = new Image();
+      const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      
+      img.onload = function() {
+        ctx.drawImage(img, 0, 0, size, size);
+        URL.revokeObjectURL(url);
+      };
+      
+      img.src = url;
+    }
+
+    function downloadIcon(size) {
+      const canvas = document.getElementById(`canvas${size}`);
+      const link = document.createElement('a');
+      link.download = `icon${size}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      // Show success message
+      const success = document.getElementById('success');
+      success.style.display = 'block';
+      setTimeout(() => {
+        success.style.display = 'none';
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
